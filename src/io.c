@@ -13,14 +13,14 @@ int main(){
     // m -> Tamanho da população
     // G -> Número de gerações
 
-
     // Abrindo o input.dat    
-    FILE *arquivo = fopen("../input.dat", "r");
+    FILE *arquivo = fopen("../../input.dat", "r");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo!\n");
         return 1;
     }
 
+    
     // Lendo o input.dat
 
     // Primeira linha

@@ -2,7 +2,7 @@ CC = gcc
 FLAGS = -Wall -O2
 TARGET = ag
 
-SRCS = $(wildcard *.c)
+SRCS = $(wildcard src/*.c)
 OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)

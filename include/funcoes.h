@@ -15,8 +15,12 @@ Individuo* criar_populacao(int m);
 
 void calcular_fitness(Individuo *populacao, int m, Ponto *dados, int n);
 
-Individuo melhor_individuo(Individuo *populacao, int m, int *i_melhor);
+void imprimir_pontos(Ponto *dados, int n);
 
-void imprimir_populacao(Individuo *populacao, int m, int G_atual, int G_total);
+int comparar_fitness(const void *a, const void *b);
 
-void evoluir(Individuo *populacao, int m);
+void ordenar_populacao(Individuo *populacao, int m);
+
+void imprimir_populacao(Individuo *populacao, int m, int i, FILE *arquivo);
+
+void mutacao(Individuo *populacao, int m);

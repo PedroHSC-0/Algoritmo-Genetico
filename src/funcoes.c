@@ -69,23 +69,11 @@ void calcular_fitness(Individuo *populacao, int m, Ponto *dados, int n){
             erro = dados[j].y - y_reta;
             if (erro < 0) erro = erro * (-1);
             erro_total += erro;
-        
+
         }
         
         populacao[i].fitness = erro_total / n;
     }
-}
-
-Individuo melhor_individuo(Individuo *populacao, int m, int *i_melhor){
-    float min = populacao[0].fitness;
-    min = populacao[0].fitness;
-    for(int i = 1; i < m; i++){
-        if (populacao[i].fitness < min){
-            min = populacao[i].fitness;
-            *i_melhor = i;
-        }
-    }
-    return populacao[*i_melhor];
 }
 
 void imprimir_pontos(Ponto *dados, int n){
@@ -95,27 +83,55 @@ void imprimir_pontos(Ponto *dados, int n){
     }
 }
 
-void imprimir_populacao(Individuo *populacao, int m, int G_atual, int G_total){
-    printf("População: :\n");
+int comparar_fitness(const void *a, const void *b){
+    Individuo *ind_a = (Individuo *)a;
+    Individuo *ind_b = (Individuo *)b;
     
-    for (int i = 0; i < m; i++){
-        printf("%d-) a: %.2f, b: %.2f, fitness: %.2f\n", i+1, populacao[i].a, populacao[i].b, populacao[i].fitness);
-    }
-
-    FILE *arquivo = fopen("config/output.dat", "w");
-
-    if (arquivo == NULL) {
-        printf("Erro ao abrir arquivo!\n");
-        return NULL;
-    }
-
-    for(int i = 0; i < G_total; i++){
-        fprintf(arquivo, "%d-) a: %.2f, b: %.2f| fitness %.2f\n");
-    }
-
-    fclose(arquivo);
+    if (ind_a->fitness < ind_b->fitness) return -1;
+    if (ind_a->fitness > ind_b->fitness) return  1;
+    return 0;
 }
 
-void ordenar_populacao(Individuo *populacao, int n){
-    
+void ordenar_populacao(Individuo *populacao, int m){
+    qsort(populacao, m, sizeof(Individuo), comparar_fitness);
+}
+
+void imprimir_populacao(Individuo *populacao, int m, int i, FILE *arquivo){
+    printf("Geração: %d\n", i+1);
+    fprintf(arquivo, "Geração %d\n", i+1);
+    for (int i = 0; i < m; i++){
+        printf("%d-) a: %.2f, b: %.2f, fitness: %.2f\n", i+1, populacao[i].a, populacao[i].b, populacao[i].fitness);
+        fprintf(arquivo, "%d: a: %.2f, b: %.2f, fitness: %.2f\n", i+1, populacao[i].a, populacao[i].b, populacao[i].fitness);
+    }
+}
+
+void mutacao(Individuo *populacao, int m){
+    int metade;
+
+    if (m % 2 == 0) {metade = m/2;}
+    else {metade = m / 2 + 1;}
+    int mut_a = 0;
+
+    float a_pai, b_pai;
+
+    // Pegar a quantidade de indivíduos, e pega primeira metade, onde estão os melhores
+    // Copiar os dados mutados dos melhores para a outra metade, onde estão os piores
+    // Para cobrir casos ímpares, mutando um a mais que a metade
+    for (int i = 0; i < metade; i++){
+        float fator = ((rand() % 201) - 100) / 1000.0;
+
+        a_pai = populacao[i].a;
+        b_pai = populacao[i].b;
+
+        if (rand() % 2){
+            a_pai += populacao[i].a * fator;
+            mut_a = 1;
+        }
+        if (rand() % 2 || !mut_a) {
+            b_pai += populacao[i].b * fator;
+        }
+
+        populacao[m - i - 1].a = a_pai;
+        populacao[m - i - 1].b = b_pai;
+    }
 }

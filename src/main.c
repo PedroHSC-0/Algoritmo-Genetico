@@ -1,21 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "funcoes.h"
+#include "model.h"
+#include "io.h"
+#include "genetico.h"
 
 int main(){ 
     int n, m, G;
     Ponto *dados = ler_pontos(&n, &m, &G);
-
-    // Printar as sementes
-    imprimir_pontos(dados, n);
 
     // Criar População
     Individuo *populacao = criar_populacao(m);
 
     calcular_fitness(populacao, m, dados, n);
     ordenar_populacao(populacao, m);
-
-    // Evolução
 
     FILE *arquivo = fopen("config/output.dat", "w");
 
@@ -24,6 +21,7 @@ int main(){
         return 1;
     }
 
+    // Evolução
     // Loop das gerações
     for (int i = 0; i < G; i++){
         // Fazer mutação dos melhores indivíduos
@@ -33,9 +31,8 @@ int main(){
         calcular_fitness(populacao, m, dados, n);
         ordenar_populacao(populacao, m);
 
-        imprimir_populacao(populacao, 3, i, arquivo);
+        imprimir_populacao(populacao, m, i, arquivo);
     }
-
 
     // Liberar memória
     fclose(arquivo);

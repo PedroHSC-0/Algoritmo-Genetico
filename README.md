@@ -15,22 +15,25 @@
 
 [Descreva o que o trabalho busca consolidar: manipulação de vetores/matrizes, alocação dinâmica, modularização, etc.]
 
----
+-------------------------------------------
 
 ## Estrutura do Repositório
-```
+
+Algoritmo Genetico
+|── config/
+│   ├── input.h
+│   └── output.h
 ├── src/
+│   ├── genetico.c
+│   ├── genetico.h
+│   ├── io.c
+│   ├── io.h
 │   ├── main.c
-│   ├── genetic.c
-│   ├── genetic.h
-│   └── ...
-├── input.dat
-├── output.dat
+│   └── model.h
 ├── Makefile
 └── README.md
-```
 
----
+-------------------------------------------
 
 ## Estruturas de Dados
 

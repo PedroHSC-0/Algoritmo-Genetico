@@ -5,7 +5,6 @@
 #include "genetico.h"
 
 Individuo* criar_populacao(int m){
-    srand(time(NULL)); 
     Individuo *populacao = (Individuo*) malloc(m * sizeof(Individuo));
 
     if (populacao == NULL) {
@@ -39,7 +38,8 @@ void calcular_fitness(Individuo *populacao, int m, Ponto *dados, int n){
 
         }
         
-        populacao[i].fitness = erro_total / n;
+        populacao[i].fitness = 1/((erro_total / n)+1);
+
     }
 }
 
@@ -47,8 +47,8 @@ int comparar_fitness(const void *a, const void *b){
     Individuo *ind_a = (Individuo *)a;
     Individuo *ind_b = (Individuo *)b;
     
-    if (ind_a->fitness < ind_b->fitness) return -1;
-    if (ind_a->fitness > ind_b->fitness) return  1;
+    if (ind_a->fitness > ind_b->fitness) return -1;
+    if (ind_a->fitness < ind_b->fitness) return  1;
     return 0;
 }
 
@@ -77,22 +77,25 @@ void mutacao(Individuo *populacao, int m){
             a_pai = populacao[i].a;
             b_pai = populacao[i].b;
             if (rand() % 2){
-                
+                printf("Mutação A\n");
                 a_pai += populacao[i].a * fator;
                 mut_a = 1;
             }
             if (rand() % 2 || !mut_a) {
+                printf("Mutação B\n");
                 b_pai += populacao[i].b * fator;
             }
         } 
         
         // Crossover  
         else{
+            printf("Crossover AB\n");
             if(rand() % 2){
                 a_pai = populacao[i].a;
                 b_pai = populacao[i+1].b;
             }
             else{
+                printf("Crossover BA\n");
                 a_pai = populacao[i+1].a;
                 b_pai = populacao[i].b;
             }

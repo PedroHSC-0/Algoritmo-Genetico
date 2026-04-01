@@ -5,6 +5,7 @@
 #include "genetico.h"
 
 int main(){ 
+    srand(73); 
     int n, m, G;
     Ponto *dados = ler_pontos(&n, &m, &G);
 

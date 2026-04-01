@@ -116,11 +116,11 @@ populacao[i].a = (rand() % 1001) / 100.0;
 populacao[i].b = (rand() % 1001) / 100.0;
 ```
 
-A semente do gerador é inicializada com `srand(time(NULL))`, garantindo populações diferentes a cada execução.
+A semente do gerador é inicializada com `srand(73)` em `main.c`, fixando a aleatoriedade e garantindo **reprodutibilidade** — toda execução com o mesmo `input.dat` produz os mesmos resultados.
 
 #### Avaliação — `calcular_fitness(populacao, m, dados, n)`
 
-Para cada indivíduo, a função percorre todos os `n` pontos do conjunto amostral, calcula a predição `ŷᵢ = a * xᵢ + b` e acumula o erro absoluto. Ao final, divide pelo número de pontos, obtendo o MAE:
+Para cada indivíduo, a função percorre todos os `n` pontos do conjunto amostral, calcula a predição `ŷᵢ = a * xᵢ + b` e acumula o erro absoluto. O MAE é então transformado em um valor de fitness normalizado no intervalo `(0, 1]` pela fórmula:
 
 ```c
 y_reta = populacao[i].a * dados[j].x + populacao[i].b;
@@ -128,14 +128,16 @@ erro = dados[j].y - y_reta;
 if (erro < 0) erro = erro * (-1);
 erro_total += erro;
 
-populacao[i].fitness = erro_total / n;
+populacao[i].fitness = 1 / ((erro_total / n) + 1);
 ```
+
+A transformação `1 / (MAE + 1)` garante que o fitness seja sempre positivo e limitado entre `0` e `1`: quando o erro tende a zero, o fitness tende a `1` (solução perfeita); quando o erro é muito grande, o fitness tende a `0`. Dessa forma, **quanto maior o fitness, melhor o indivíduo**, seguindo a convenção clássica de algoritmos genéticos.
 
 A complexidade desta função é **O(m × n)** — para cada um dos `m` indivíduos, todos os `n` pontos são avaliados.
 
 #### Ordenação — `ordenar_populacao(populacao, m)`
 
-A população é ordenada de forma **crescente** por fitness utilizando `qsort` da biblioteca padrão, com função de comparação `comparar_fitness`. Após a ordenação, o índice `0` sempre corresponde ao melhor indivíduo (menor MAE) e o índice `m-1` ao pior.
+A população é ordenada de forma **decrescente** por fitness utilizando `qsort` da biblioteca padrão, com função de comparação `comparar_fitness`. Após a ordenação, o índice `0` sempre corresponde ao melhor indivíduo (maior fitness) e o índice `m-1` ao pior.
 
 A complexidade da ordenação é **O(m log m)**.
 
@@ -184,7 +186,7 @@ O ciclo evolutivo completo é orquestrado em `main.c` e segue a sequência abaix
 para cada geração i de 0 até G-1:
     1. mutacao(populacao, m)         → gera novos indivíduos a partir dos melhores
     2. calcular_fitness(...)         → avalia toda a população
-    3. ordenar_populacao(...)        → reordena por fitness crescente
+    3. ordenar_populacao(...)        → reordena por fitness decrescente
     4. imprimir_populacao(...)       → registra o estado da geração no output.dat
 ```
 
@@ -214,60 +216,60 @@ A cada geração, o estado completo da população é registrado simultaneamente
 
 ```
 Geração 1
-1: a: 2.30, b: 1.50, fitness: 0.87
-2: a: 1.90, b: 2.10, fitness: 1.03
+1: a: 1.02, b: 3.02, fitness: 0.42
+2: a: 1.02, b: 2.75, fitness: 0.40
 ...
 ```
 
 ## 🧪 Casos de Teste
 
-Os testes foram realizados com o conjunto de dados presente em `config/input.dat`, composto por **30 pontos** gerados com distribuição aproximadamente linear. Os parâmetros de execução utilizados foram:
+Os testes foram realizados utilizando o arquivo `config/input.dat`, contendo um conjunto de pontos com tendência linear, e a semente `srand(73)` para garantir reprodutibilidade. O formato de entrada utilizado foi:
 
 ```
-n = 30   (número de pontos)
-m = 30   (tamanho da população)
-G = 10   (número de gerações)
+n m G
+x1 y1
+x2 y2
+...
+xn yn
 ```
-
-Os pontos seguem uma tendência linear visível, com valores de `x` variando entre `0.065` e `9.572` e valores de `y` entre `1.709` e `26.587`, sugerindo uma reta real próxima de `y ≈ 2.5x + 2.5`.
 
 ---
 
-### Caso 1 — Execução padrão com 10 gerações
+### Caso 1 — Convergência progressiva do fitness
 
-Este caso corresponde à execução direta do programa com o `input.dat` fornecido. A tabela abaixo registra a evolução do **melhor indivíduo** (menor MAE) ao longo das gerações:
+O comportamento esperado ao longo das gerações é uma melhora gradual do fitness do melhor indivíduo. O algoritmo parte de uma população aleatória com fitness baixo e, a cada geração, os operadores de crossover e mutação geram novos indivíduos que tendem a se aproximar da reta ideal. A progressão não é linear — períodos de estabilização são intercalados com saltos de melhora, refletindo a natureza estocástica dos operadores genéticos.
 
-| Geração | a    | b    | MAE (fitness) |
-|---------|------|------|---------------|
-| 1       | 2.59 | 2.30 | 1.21          |
-| 2       | 2.31 | 3.33 | 1.09          |
-| 3       | 2.31 | 3.33 | 1.09          |
-| 4       | 2.31 | 3.33 | 1.09          |
-| 5       | 2.31 | 3.33 | 1.09          |
-| 6       | 2.31 | 3.33 | 1.09          |
-| 7       | 2.31 | 3.33 | 1.09          |
-| 8       | 2.31 | 3.33 | 1.09          |
-| 9       | 2.38 | 3.55 | 1.07          |
-| 10      | 2.38 | 3.55 | 1.07          |
+O formato de saída registrado em `config/output.dat` a cada geração permite acompanhar essa evolução:
 
-**Observações:**
-
-- O algoritmo convergiu rapidamente já na geração 2, encontrando `a = 2.31, b = 3.33` com MAE de `1.09`.
-- Entre as gerações 2 e 8, o melhor indivíduo permaneceu estável, indicando que a mutação não foi suficiente para escapar do platô local nesse intervalo.
-- Na geração 9 houve uma melhora discreta para `a = 2.38, b = 3.55` com MAE de `1.07`, encerrando a execução com esse valor.
-- A solução final `ŷ = 2.38x + 3.55` é uma boa aproximação da tendência linear dos dados, com erro médio absoluto inferior a `1.1` unidade ao longo de todos os 30 pontos.
+```
+Geração 1
+1: a: X.XX, b: X.XX, fitness: 0.XX   ← melhor indivíduo
+2: a: X.XX, b: X.XX, fitness: 0.XX
+...
+```
 
 ---
 
 ### Caso 2 — Estagnação da população
 
-Um comportamento observado nas gerações finais do `output.dat` é a **homogeneização da população**: a maioria dos 30 indivíduos converge para valores praticamente idênticos de `a` e `b`, como evidenciado abaixo (geração 10):
+Um comportamento recorrente em algoritmos genéticos com taxa de mutação baixa é a **homogeneização da população**: ao longo das gerações, a maioria dos indivíduos converge para valores muito próximos de `a` e `b`, reduzindo a diversidade genética. Quando isso ocorre, os operadores de crossover e mutação passam a gerar indivíduos cada vez mais semelhantes entre si, limitando a capacidade de exploração do espaço de busca e desacelerando a melhora do fitness. Esse fenômeno é esperado no algoritmo implementado, dado que o fator de variação `δ ∈ [-0.1, +0.1]` é de pequena amplitude e proporcional ao valor atual dos parâmetros.
 
-```
-1:  a: 2.46, b: 3.33, fitness: 1.12
-...
-19: a: 2.46, b: 3.33, fitness: 1.12
-20: a: 2.46, b: 3.37, fitness: 1.13
-```
+## 💬🎯 Análises e Conclusões
 
-Isso indica que o operador de mutação, com variação proporcional máxima de `±10%`, tende a produzir indivíduos muito semelhantes entre si ao longo das gerações, reduzindo a diversidade genética da população. Esse é um comportamento esperado em AGs com taxa de mutação baixa e ausência de mecanismo de elitismo explícito com reintrodução de diversidade.
+### 1. Comportamento do Fitness ao Longo das Gerações
+
+O fitness do melhor indivíduo tende a crescer de forma não uniforme ao longo das gerações. É esperado observar períodos de estabilização intercalados com saltos pontuais de melhora, o que é comportamento característico de algoritmos genéticos com mutação de pequena amplitude operando em espaços de busca contínuos. Esses platôs ocorrem quando a variação introduzida pelos operadores não é suficiente para escapar de um ótimo local, e os saltos acontecem quando uma combinação favorável de crossover e mutação gera um indivíduo significativamente melhor.
+
+### 2. Limitações Identificadas
+
+**Convergência prematura:** A população tende a se homogeneizar ao longo das gerações, com a maioria dos indivíduos convergindo para valores muito próximos de `a` e `b`. Isso indica que a diversidade genética decresce mais rápido do que a mutação consegue reintroduzir, limitando a capacidade de exploração do espaço de busca nas gerações avançadas.
+
+**Taxa de mutação fixa:** O fator de variação `δ ∈ [-0.1, +0.1]` é proporcional ao valor atual dos parâmetros, o que significa que indivíduos com `a` e `b` pequenos sofrem perturbações menores em magnitude absoluta. Isso pode dificultar o refinamento fino da solução quando os parâmetros já convergem para valores baixos.
+
+**Ausência de elitismo explícito:** O melhor indivíduo não é preservado diretamente entre gerações — ele pode ser sobrescrito dependendo do resultado da ordenação. Um mecanismo de elitismo garantiria que a melhor solução encontrada nunca se perca ao longo do processo evolutivo.
+
+### 3. Conclusão
+
+O algoritmo implementado cumpre o objetivo proposto: buscar iterativamente parâmetros `(a, b)` que minimizem o erro de ajuste de uma reta a um conjunto de dados, utilizando os operadores clássicos de um algoritmo genético. A transformação do MAE em fitness normalizado pela fórmula `1 / (MAE + 1)` torna a métrica limitada ao intervalo `(0, 1]` e compatível com a convenção de maximização, facilitando tanto a interpretação dos resultados quanto a ordenação da população.
+
+Ajustes como aumento do número de gerações, ampliação da taxa de mutação ou introdução de elitismo explícito têm potencial direto de elevar a qualidade da solução encontrada, e representam caminhos naturais para evoluções futuras do projeto.

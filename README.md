@@ -1,6 +1,5 @@
 # Algoritmo Genético — Ajuste de Função Linear
 
-![STATUS](http://img.shields.io/static/v1?label=STATUS&message=EM%20DESENVOLVIMENTO&color=GREEN&style=for-the-badge)
 ![Linguagem](https://img.shields.io/static/v1?label=Linguagem&message=C&color=GREEN&style=for-the-badge)
 
 ---
@@ -31,7 +30,7 @@ Cada solução candidata — chamada de **indivíduo** — representa um par `(a
 MAE = (1/n) * Σ |yᵢ - ŷᵢ|
 ```
 
-Como o objetivo é **minimizar** o erro, o fitness de cada indivíduo é interpretado diretamente como o MAE calculado — indivíduos com menor MAE são considerados melhores. A população é ordenada de forma crescente por fitness a cada geração, de modo que os primeiros índices sempre correspondem aos melhores indivíduos.
+O MAE é transformado em um fitness normalizado no intervalo `(0, 1]` pela fórmula `1 / (MAE + 1)` — quanto menor o erro, maior o fitness. Dessa forma, **indivíduos com maior fitness são considerados melhores**, e a população é ordenada de forma decrescente a cada geração, de modo que os primeiros índices sempre correspondem aos melhores indivíduos.
 
 ### Ciclo Evolutivo
 
@@ -133,13 +132,9 @@ populacao[i].fitness = 1 / ((erro_total / n) + 1);
 
 A transformação `1 / (MAE + 1)` garante que o fitness seja sempre positivo e limitado entre `0` e `1`: quando o erro tende a zero, o fitness tende a `1` (solução perfeita); quando o erro é muito grande, o fitness tende a `0`. Dessa forma, **quanto maior o fitness, melhor o indivíduo**, seguindo a convenção clássica de algoritmos genéticos.
 
-A complexidade desta função é **O(m × n)** — para cada um dos `m` indivíduos, todos os `n` pontos são avaliados.
-
 #### Ordenação — `ordenar_populacao(populacao, m)`
 
 A população é ordenada de forma **decrescente** por fitness utilizando `qsort` da biblioteca padrão, com função de comparação `comparar_fitness`. Após a ordenação, o índice `0` sempre corresponde ao melhor indivíduo (maior fitness) e o índice `m-1` ao pior.
-
-A complexidade da ordenação é **O(m log m)**.
 
 #### Mutação e Crossover — `mutacao(populacao, m)`
 
@@ -176,8 +171,6 @@ populacao[m - i - 1].a = a_pai;
 populacao[m - i - 1].b = b_pai;
 ```
 
-A complexidade desta função é **O(m)**.
-
 #### Loop Principal — `main.c`
 
 O ciclo evolutivo completo é orquestrado em `main.c` e segue a sequência abaixo a cada uma das `G` gerações:
@@ -189,8 +182,6 @@ para cada geração i de 0 até G-1:
     3. ordenar_populacao(...)        → reordena por fitness decrescente
     4. imprimir_populacao(...)       → registra o estado da geração no output.dat
 ```
-
-A complexidade total do loop é **O(G × (m × n + m log m))**, dominada pela avaliação de fitness em cada geração.
 
 ---
 
@@ -273,3 +264,92 @@ O fitness do melhor indivíduo tende a crescer de forma não uniforme ao longo d
 O algoritmo implementado cumpre o objetivo proposto: buscar iterativamente parâmetros `(a, b)` que minimizem o erro de ajuste de uma reta a um conjunto de dados, utilizando os operadores clássicos de um algoritmo genético. A transformação do MAE em fitness normalizado pela fórmula `1 / (MAE + 1)` torna a métrica limitada ao intervalo `(0, 1]` e compatível com a convenção de maximização, facilitando tanto a interpretação dos resultados quanto a ordenação da população.
 
 Ajustes como aumento do número de gerações, ampliação da taxa de mutação ou introdução de elitismo explícito têm potencial direto de elevar a qualidade da solução encontrada, e representam caminhos naturais para evoluções futuras do projeto.
+## ⌨️ Instalação e Configuração
+
+### Requisitos
+
+- GCC (compilador C)
+- Make
+- Linux (desenvolvido e testado em Arch Linux)
+
+### Passos
+
+**1. Verificar e instalar o compilador GCC**
+
+```bash
+gcc --version
+```
+
+Caso não esteja instalado:
+
+```bash
+# Arch Linux
+sudo pacman -S gcc
+
+# Ubuntu/Debian
+sudo apt install gcc -y
+```
+
+**2. Verificar e instalar o Make**
+
+```bash
+make --version
+```
+
+Caso não esteja instalado:
+
+```bash
+# Arch Linux
+sudo pacman -S make
+
+# Ubuntu/Debian
+sudo apt install make -y
+```
+
+**3. Clonar o repositório**
+
+```bash
+git clone <url-do-repositorio>
+cd Algoritmo\ Genetico
+```
+
+**4. Configurar a entrada**
+
+Edite o arquivo `config/input.dat` com os parâmetros desejados:
+
+```
+n m G
+x1 y1
+x2 y2
+...
+xn yn
+```
+
+Onde `n` é o número de pontos, `m` o tamanho da população e `G` o número de gerações.
+
+**5. Compilar o projeto**
+
+```bash
+make
+```
+
+Para recompilar do zero:
+
+```bash
+make clean
+make
+```
+
+**6. Executar**
+
+```bash
+make run
+```
+
+Os resultados serão registrados em `config/output.dat` a cada geração.
+
+---
+
+## 👨‍💻 Autor
+
+Desenvolvido por **Pedro Henrique Silva Costa** para a disciplina de Algoritmos e Estruturas de Dados I — CEFET-MG Campus V, Divinópolis.

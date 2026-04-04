@@ -1,5 +1,6 @@
 # Algoritmo Genético — Ajuste de Função Linear
 
+![STATUS](http://img.shields.io/static/v1?label=STATUS&message=EM%20DESENVOLVIMENTO&color=GREEN&style=for-the-badge)
 ![Linguagem](https://img.shields.io/static/v1?label=Linguagem&message=C&color=GREEN&style=for-the-badge)
 
 ---
@@ -244,6 +245,38 @@ Geração 1
 ### Caso 2 — Estagnação da população
 
 Um comportamento recorrente em algoritmos genéticos com taxa de mutação baixa é a **homogeneização da população**: ao longo das gerações, a maioria dos indivíduos converge para valores muito próximos de `a` e `b`, reduzindo a diversidade genética. Quando isso ocorre, os operadores de crossover e mutação passam a gerar indivíduos cada vez mais semelhantes entre si, limitando a capacidade de exploração do espaço de busca e desacelerando a melhora do fitness. Esse fenômeno é esperado no algoritmo implementado, dado que o fator de variação `δ ∈ [-0.1, +0.1]` é de pequena amplitude e proporcional ao valor atual dos parâmetros.
+
+## 📈 Análise de Complexidade
+
+A tabela abaixo resume a complexidade assintótica de cada rotina principal do algoritmo, onde `n` é o número de pontos, `m` o tamanho da população e `G` o número de gerações:
+
+| Função | Complexidade |
+|---|---|
+| `criar_populacao` | O(m) |
+| `calcular_fitness` | O(m × n) |
+| `ordenar_populacao` | O(m log m) |
+| `mutacao` | O(m) |
+| **Loop principal** | **O(G × m × n)** |
+
+### `criar_populacao(m)`
+
+Percorre a população uma única vez para inicializar os parâmetros `a` e `b` de cada indivíduo com valores aleatórios, realizando trabalho constante por iteração. Complexidade: **O(m)**.
+
+### `calcular_fitness(populacao, m, dados, n)`
+
+Contém dois loops aninhados: o externo itera sobre os `m` indivíduos e o interno percorre os `n` pontos do conjunto amostral para calcular o erro de cada indivíduo. O total de operações é proporcional a `m × n`. É a função de maior custo individual do algoritmo. Complexidade: **O(m × n)**.
+
+### `ordenar_populacao(populacao, m)`
+
+Utiliza `qsort` da biblioteca padrão, que implementa o Quicksort com custo médio bem estabelecido. Complexidade: **O(m log m)**.
+
+### `mutacao(populacao, m)`
+
+Percorre a primeira metade da população (`m/2` iterações) para aplicar crossover ou mutação e sobrescrever a segunda metade. Constantes são ignoradas na notação Big-O. Complexidade: **O(m)**.
+
+### Loop principal — `main.c`
+
+A cada geração, as funções são chamadas em sequência — não aninhadas. Seus custos somam `O(m) + O(m×n) + O(m log m) + O(m)`. O termo dominante é `O(m × n)`, pois cresce mais rápido que `m log m` à medida que `n` aumenta. Esse custo se repete `G` vezes. Complexidade total: **O(G × m × n)**.
 
 ## 💬🎯 Análises e Conclusões
 
